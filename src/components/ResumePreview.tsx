@@ -16,6 +16,11 @@ const ResumePreview = () => {
     
     // Break long paragraphs into bullet points
     const breakIntoBullets = (text: string) => {
+      // Only split if the text is really long and contains multiple sentences
+      if (text.length < 300) {
+        return [text]; // Keep shorter texts as a single bullet
+      }
+      
       // Split by periods, question marks, or exclamation points followed by space
       const sentences = text.split(/(?<=[.!?])\s+/);
       
@@ -27,7 +32,8 @@ const ResumePreview = () => {
         if (!sentence.trim()) continue;
         
         // If adding this sentence would make the bullet too long, start a new one
-        if (currentBullet && (currentBullet.length + sentence.length > 150)) {
+        // Using a larger threshold to avoid breaking sentences too often
+        if (currentBullet && (currentBullet.length + sentence.length > 200)) {
           bullets.push(currentBullet);
           currentBullet = sentence;
         } else {
@@ -48,7 +54,7 @@ const ResumePreview = () => {
     const items = description.split(/\n|(?:\d+\.\s*)/g).filter(item => item.trim());
     
     if (items.length <= 1) {
-      // For single paragraph descriptions, break them into multiple bullets
+      // For single paragraph descriptions, break them into multiple bullets only if very long
       const bullets = breakIntoBullets(description);
       
       if (bullets.length <= 1) {
@@ -67,8 +73,9 @@ const ResumePreview = () => {
     return (
       <ul className="list-disc pl-5 space-y-1">
         {items.map((item, index) => {
-          // For longer items, break them into multiple bullets
-          if (item.length > 150) {
+          // For longer items, break them into multiple bullets only if they are very long
+          // and contain multiple sentences
+          if (item.length > 300 && item.split(/(?<=[.!?])\s+/).length > 3) {
             const bullets = breakIntoBullets(item);
             return bullets.map((bullet, bulletIndex) => (
               <li key={`${index}-${bulletIndex}`} className="resume-item-description">{bullet.trim()}</li>

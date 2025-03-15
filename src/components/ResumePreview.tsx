@@ -30,6 +30,74 @@ const ResumePreview = () => {
     );
   };
 
+  // Function to format descriptions that might contain project headings
+  const formatProjectsDescription = (description: string) => {
+    if (!description) return null;
+    
+    // Split the description by lines
+    const lines = description.split('\n').filter(line => line.trim());
+    
+    if (lines.length <= 1) {
+      return formatDescriptionWithBullets(description);
+    }
+    
+    // Group project headings with their descriptions
+    const projects = [];
+    let currentProject = null;
+    let currentDescription = [];
+    
+    for (const line of lines) {
+      // Check if this line looks like a project heading (ends with colon or has specific patterns)
+      if (line.includes(':') || /^[A-Z][^.]*(?:Project|System|Application|Platform|Tool|Framework)/.test(line)) {
+        // If we have a previous project, add it to our list
+        if (currentProject) {
+          projects.push({
+            heading: currentProject,
+            description: currentDescription.join('\n')
+          });
+        }
+        
+        // Start a new project
+        currentProject = line;
+        currentDescription = [];
+      } else if (currentProject) {
+        // Add this line to the current project's description
+        currentDescription.push(line);
+      } else {
+        // If we don't have a project yet, create one with an empty heading
+        currentProject = '';
+        currentDescription.push(line);
+      }
+    }
+    
+    // Add the last project
+    if (currentProject !== null) {
+      projects.push({
+        heading: currentProject,
+        description: currentDescription.join('\n')
+      });
+    }
+    
+    // If we didn't identify any projects with headings, just use the regular bullet formatting
+    if (projects.length === 1 && !projects[0].heading) {
+      return formatDescriptionWithBullets(description);
+    }
+    
+    // Render the projects with their headings and bullet point descriptions
+    return (
+      <div className="space-y-2">
+        {projects.map((project, index) => (
+          <div key={index}>
+            {project.heading && (
+              <p className="resume-item-description font-bold">{project.heading}</p>
+            )}
+            {formatDescriptionWithBullets(project.description)}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card className="h-full overflow-hidden" id="resume-preview">
       <div className="resume-container animate-fade-in">
@@ -100,7 +168,7 @@ const ResumePreview = () => {
                     </p>
                   )}
                 </div>
-                {formatDescriptionWithBullets(exp.description)}
+                {formatProjectsDescription(exp.description)}
               </div>
             ))}
           </div>
@@ -125,7 +193,7 @@ const ResumePreview = () => {
                     </p>
                   )}
                 </div>
-                {formatDescriptionWithBullets(edu.description)}
+                {formatProjectsDescription(edu.description)}
               </div>
             ))}
           </div>

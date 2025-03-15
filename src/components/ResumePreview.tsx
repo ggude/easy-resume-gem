@@ -14,18 +14,68 @@ const ResumePreview = () => {
   const formatDescriptionWithBullets = (description: string) => {
     if (!description) return null;
     
+    // Break long paragraphs into bullet points
+    const breakIntoBullets = (text: string) => {
+      // Split by periods, question marks, or exclamation points followed by space
+      const sentences = text.split(/(?<=[.!?])\s+/);
+      
+      // Group sentences into reasonable bullet points (2-3 sentences per bullet)
+      const bullets = [];
+      let currentBullet = '';
+      
+      for (const sentence of sentences) {
+        if (!sentence.trim()) continue;
+        
+        // If adding this sentence would make the bullet too long, start a new one
+        if (currentBullet && (currentBullet.length + sentence.length > 150)) {
+          bullets.push(currentBullet);
+          currentBullet = sentence;
+        } else {
+          // Append to current bullet with a space if it's not empty
+          currentBullet = currentBullet ? `${currentBullet} ${sentence}` : sentence;
+        }
+      }
+      
+      // Add the last bullet if there's anything left
+      if (currentBullet) {
+        bullets.push(currentBullet);
+      }
+      
+      return bullets;
+    };
+    
     // Split by new lines or number patterns like "1.", "2.", etc.
     const items = description.split(/\n|(?:\d+\.\s*)/g).filter(item => item.trim());
     
     if (items.length <= 1) {
-      return <p className="resume-item-description">{description}</p>;
+      // For single paragraph descriptions, break them into multiple bullets
+      const bullets = breakIntoBullets(description);
+      
+      if (bullets.length <= 1) {
+        return <p className="resume-item-description">{description}</p>;
+      }
+      
+      return (
+        <ul className="list-disc pl-5 space-y-1">
+          {bullets.map((bullet, index) => (
+            <li key={index} className="resume-item-description">{bullet.trim()}</li>
+          ))}
+        </ul>
+      );
     }
     
     return (
       <ul className="list-disc pl-5 space-y-1">
-        {items.map((item, index) => (
-          <li key={index} className="resume-item-description">{item.trim()}</li>
-        ))}
+        {items.map((item, index) => {
+          // For longer items, break them into multiple bullets
+          if (item.length > 150) {
+            const bullets = breakIntoBullets(item);
+            return bullets.map((bullet, bulletIndex) => (
+              <li key={`${index}-${bulletIndex}`} className="resume-item-description">{bullet.trim()}</li>
+            ));
+          }
+          return <li key={index} className="resume-item-description">{item.trim()}</li>;
+        }).flat()}
       </ul>
     );
   };

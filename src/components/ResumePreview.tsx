@@ -10,6 +10,26 @@ const ResumePreview = () => {
   const { personalInfo, workExperience, education, skills, summary } = resumeData;
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
+  // Function to convert description text to bullet points
+  const formatDescriptionWithBullets = (description: string) => {
+    if (!description) return null;
+    
+    // Split by new lines or number patterns like "1.", "2.", etc.
+    const items = description.split(/\n|(?:\d+\.\s*)/g).filter(item => item.trim());
+    
+    if (items.length <= 1) {
+      return <p className="resume-item-description">{description}</p>;
+    }
+    
+    return (
+      <ul className="list-disc pl-5 space-y-1">
+        {items.map((item, index) => (
+          <li key={index} className="resume-item-description">{item.trim()}</li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <Card className="h-full overflow-hidden" id="resume-preview">
       <div className="resume-container animate-fade-in">
@@ -56,10 +76,9 @@ const ResumePreview = () => {
           </div>
         </div>
         
-        {/* Summary */}
+        {/* Summary - without heading */}
         {summary && (
           <div className="resume-section">
-            <h2 className="resume-section-title">Summary</h2>
             <p className="resume-item-description">{summary}</p>
           </div>
         )}
@@ -72,7 +91,7 @@ const ResumePreview = () => {
               <div key={exp.id} className="resume-item">
                 <div className="resume-item-header">
                   <div>
-                    <h3 className="resume-item-title">{exp.position}</h3>
+                    <h3 className="resume-item-title font-semibold">{exp.position}</h3>
                     <p className="resume-item-subtitle">{exp.company}{exp.location ? `, ${exp.location}` : ''}</p>
                   </div>
                   {(exp.startDate || exp.endDate) && (
@@ -81,7 +100,7 @@ const ResumePreview = () => {
                     </p>
                   )}
                 </div>
-                {exp.description && <p className="resume-item-description">{exp.description}</p>}
+                {formatDescriptionWithBullets(exp.description)}
               </div>
             ))}
           </div>
@@ -106,7 +125,7 @@ const ResumePreview = () => {
                     </p>
                   )}
                 </div>
-                {edu.description && <p className="resume-item-description">{edu.description}</p>}
+                {formatDescriptionWithBullets(edu.description)}
               </div>
             ))}
           </div>
